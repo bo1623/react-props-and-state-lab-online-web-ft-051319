@@ -3,6 +3,9 @@ import React from 'react'
 import Filters from './Filters'
 import PetBrowser from './PetBrowser'
 
+import update from 'immutability-helper';
+
+
 class App extends React.Component {
   constructor() {
     super()
@@ -15,6 +18,56 @@ class App extends React.Component {
     }
   }
 
+  changeType=(event)=>{
+    console.log('inside changetype')
+    console.log(event.target.value)
+    this.setState({
+      filters: {
+        type: event.target.value
+      }
+    })
+  }
+
+  onFindPetsClick=()=>{
+    console.log('inside petsclick')
+    if (this.state.filters.type==='all'){
+      let url='/api/pets'
+      this.fetchFunction(url)
+    } else {
+      let url=`/api/pets?type=${this.state.filters.type}`
+      this.fetchFunction(url)
+    }
+  }
+
+  fetchFunction=(url)=>{
+    fetch(url)
+    .then(resp=>resp.json())
+    .then(json=>{
+      this.setState({
+        pets: json
+      })
+    })
+    .then(()=>console.log(this.state))
+  }
+
+  getIndex=(id)=>{
+    let arr=this.state.pets
+    for (let i=0;arr.length;i++){
+      if(arr[i].id===id){
+        return i //getting index of the object with the matching id
+      }
+    }
+  }
+
+  onAdoptPet=(id)=>{
+    let arr=this.state.pets //creating a copy of the current array
+    arr[this.getIndex(id)].isAdopted=true //setting the isAdopted feature of the chosen object to true
+    this.setState({
+      pets: arr //just replacing the entire pets array with the new updated one
+    })
+  }
+
+
   render() {
     return (
       <div className="ui container">
@@ -24,10 +77,10 @@ class App extends React.Component {
         <div className="ui container">
           <div className="ui grid">
             <div className="four wide column">
-              <Filters />
+              <Filters onChangeType={this.changeType} onFindPetsClick={this.onFindPetsClick}/>
             </div>
             <div className="twelve wide column">
-              <PetBrowser />
+              <PetBrowser pets={this.state.pets} onAdoptPet={this.onAdoptPet}/>
             </div>
           </div>
         </div>
